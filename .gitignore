@@ -1,0 +1,10 @@
+rm -rf .git/Model/
+/Model/roberta_model/
+/Model/roberta_tokenizer/
+/Classifier/
+/Twitter/Model/
+/Facebook/Model/
+/Facebook/Model/roberta_model/
+/Facebook/Model/roberta_tokenizer/
+/Twitter/Model/roberta_model/
+/Twitter/Model/roberta_tokenizer/
