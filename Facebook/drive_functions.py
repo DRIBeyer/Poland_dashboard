@@ -180,3 +180,74 @@ def save_dataframe_in_tab(df, spreadsheet_id, new_tab_name):
         'values': df_data
     }
     sheets_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=new_tab_name, body=data, valueInputOption='USER_ENTERED').execute()
+
+
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+import numpy as np
+
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+import numpy as np
+
+def save_dataframe_preserve_col_A(df, spreadsheet_id, new_tab_name):
+    # Define the scope
+    scope = ['https://www.googleapis.com/auth/spreadsheets',
+             'https://www.googleapis.com/auth/drive.file',
+             'https://www.googleapis.com/auth/drive']
+
+    # Add your service account file
+    creds = service_account.Credentials.from_service_account_file('driveproject-392612-86425acec0ff.json', scopes=scope)
+
+    # Authenticate Google Sheets API client
+    sheets_service = build('sheets', 'v4', credentials=creds)
+
+    # Check if the new_tab_name already exists in the spreadsheet
+    spreadsheet = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    tab_exists = False
+    for sheet in spreadsheet['sheets']:
+        if sheet['properties']['title'] == new_tab_name:
+            tab_exists = True
+            break
+
+    if not tab_exists:
+        # Create a new sheet in the spreadsheet
+        requests = [
+            {
+                'addSheet': {
+                    'properties': {
+                        'title': new_tab_name
+                    }
+                }
+            }
+        ]
+        batch_update_request = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={'requests': requests})
+        batch_update_request.execute()
+    else:
+        # Fetch data from column A of the existing tab
+        col_A_data = sheets_service.spreadsheets().values().get(spreadsheetId=spreadsheet_id,
+                                                                range=f"{new_tab_name}!A:A").execute()
+        col_A_values = col_A_data.get('values', [])
+
+    # Convert the DataFrame to a 2D list
+    df = df.replace(np.nan, '', regex=True)  # Replace 'NaN' values with empty strings
+    df_values = df.values.tolist()
+    df_headers = [list(df.columns)]
+    df_data = df_headers + df_values
+
+    # Define the range starting from B1
+    range_name = f"{new_tab_name}!B1"
+
+    # Write data to the tab (excluding Column A)
+    data = {
+        'values': df_data
+    }
+    sheets_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range_name, body=data, valueInputOption='USER_ENTERED').execute()
+
+    # If there's data in column A, rewrite it back to the sheet to preserve it
+    if col_A_values:
+        col_A_list = [row[0] if len(row) > 0 else '' for row in col_A_values]
+        data_A = {
+            'values': [[value] for value in col_A_list]
+        }
+        sheets_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=f"{new_tab_name}!A1:A{len(col_A_list)}", body=data_A, valueInputOption='USER_ENTERED').execute()

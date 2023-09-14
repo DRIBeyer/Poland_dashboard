@@ -2,7 +2,7 @@ from drive_functions import *
 import numpy as np
 
 df = create_dataframe_from_folder("1x53Whuu7dZxB28wx_TZ67NiV2BlbbA27")
-
+df2 = df.copy()
 
 ################################counts##########################################################################
 
@@ -167,64 +167,182 @@ save_dataframe_to_drive(result, "sentiment_distribution.xlsx", "1UbBeVSE9pymhho8
 
 
 #########################################toxicity##############################################################
-def count_high_toxicity_entries(df):
-    # Filter the dataframe for entries with 'toxicity' greater than 0.7
-    filtered_df = df[df['toxicity'] > 0.7]
+# def count_high_toxicity_entries(df):
+#     # Filter the dataframe for entries with 'toxicity' greater than 0.7
+#     filtered_df = df[df['toxicity'] > 0.7]
+#
+#     # Group by 'title' column and count the instances
+#     toxic_counts = filtered_df.groupby('title')['toxicity'].count()
+#
+#     return toxic_counts.reset_index().rename(columns={"toxicity": "high_toxicity_count"})
+#
+# toxic_counts = count_high_toxicity_entries(df)
+#
+# toxic_counts = toxic_counts.astype({"title": "str", "high_toxicity_count": "int"})
+# theme_folder = "1UrtdwP4qq2BZfj6hQ2OX4e2IQK3qX7K5"
+# save_dataframe_to_drive(toxic_counts, "toxic.xlsx", theme_folder)
+#
+#
+#
+#
+# def breakdown_by_title(df):
+#     # Filter out rows where emotion is 'neutral'
+#     filtered_df = df[df['emotion'] != 'neutral']
+#
+#     # Initialize a dictionary to keep counts
+#     counts = {}
+#
+#     # Iterate over filtered DataFrame to populate counts
+#     for idx, row in filtered_df.iterrows():
+#         title = row['title']
+#         emotion = row['emotion']
+#
+#         if title not in counts:
+#             counts[title] = {}
+#
+#         if emotion not in counts[title]:
+#             counts[title][emotion] = 0
+#
+#         counts[title][emotion] += 1
+#
+#     # Convert counts to DataFrame
+#     pivot_df = pd.DataFrame.from_dict(counts, orient='index').fillna(0)
+#
+#     # Transpose DataFrame for desired orientation
+#     pivot_df = pivot_df.transpose()
+#
+#     # Convert counts to percentage
+#     for col in pivot_df.columns:
+#         pivot_df[col] = (pivot_df[col] / pivot_df[col].sum()) * 100
+#
+#     return pivot_df.reset_index()
+#
+#
+#
+#               # Use the function
+# result_df = breakdown_by_title(df)
+# emotions_folder = "1XOrMEeEMkwsB5tW4HeIt3lBpEt4ASoP3"
+# save_dataframe_to_drive(result_df, "emotions.xlsx", emotions_folder)
+#
+# print(df.columns)
 
-    # Group by 'title' column and count the instances
-    toxic_counts = filtered_df.groupby('title')['toxicity'].count()
-
-    return toxic_counts.reset_index().rename(columns={"toxicity": "high_toxicity_count"})
-
-toxic_counts = count_high_toxicity_entries(df)
-
-toxic_counts = toxic_counts.astype({"title": "str", "high_toxicity_count": "int"})
-theme_folder = "1UrtdwP4qq2BZfj6hQ2OX4e2IQK3qX7K5"
-save_dataframe_to_drive(toxic_counts, "toxic.xlsx", theme_folder)
-
-import pandas as pd
-
-
-def breakdown_by_title(df):
-    # Filter out rows where emotion is 'neutral'
-    filtered_df = df[df['emotion'] != 'neutral']
-
-    # Initialize a dictionary to keep counts
-    counts = {}
-
-    # Iterate over filtered DataFrame to populate counts
-    for idx, row in filtered_df.iterrows():
-        title = row['title']
-        emotion = row['emotion']
-
-        if title not in counts:
-            counts[title] = {}
-
-        if emotion not in counts[title]:
-            counts[title][emotion] = 0
-
-        counts[title][emotion] += 1
-
-    # Convert counts to DataFrame
-    pivot_df = pd.DataFrame.from_dict(counts, orient='index').fillna(0)
-
-    # Transpose DataFrame for desired orientation
-    pivot_df = pivot_df.transpose()
-
-    # Convert counts to percentage
-    for col in pivot_df.columns:
-        pivot_df[col] = (pivot_df[col] / pivot_df[col].sum()) * 100
-
-    return pivot_df.reset_index()
 
 
 
-              # Use the function
-result_df = breakdown_by_title(df)
-emotions_folder = "1XOrMEeEMkwsB5tW4HeIt3lBpEt4ASoP3"
-save_dataframe_to_drive(result_df, "emotions.xlsx", emotions_folder)
+def process_and_upload(df, mapping_dict):
+    # Extracting month name
+    df['month'] = pd.to_datetime(df['date']).dt.strftime('%B')  # Extracting month name
 
+    # List of names to be considered
+    names_order = [
+        'Donald Tusk',
+        'Mateusz Morawiecki',
+        'Paweł Kukiz',
+        'Sławomir Mentzen',
+        'Władysław Kosiniak-Kamysz',
+        'Włodzimierz Czarzasty'
+    ]
 
+    # Rename the columns based on the mapping_dict
+    df = df.rename(columns=mapping_dict)
 
+    # Subset the DataFrame for rows with 'National Politicians' in the 'title' column and the given names
+    df = df[(df['title'] == 'National Politicians') & (df['name'].isin(names_order))]
+
+    # Create an empty dictionary to store the aggregated data for each group
+    aggregated_data = {}
+
+    # Extract unique months from the dataset
+    all_months = df['month'].unique()
+
+    # Create a dataframe with all combinations of names and months
+    names_df = pd.DataFrame({'name': names_order})
+    months_df = pd.DataFrame({'month': all_months})
+    names_months_df = names_df.assign(dummy=1).merge(months_df.assign(dummy=1)).drop('dummy', axis=1)
+
+    # Count the number of posts for each group by month
+    message_count = df.pivot_table(index='name', columns='month', aggfunc='size', fill_value=0).reset_index()
+
+    # Merge with all name-month combinations to ensure all are represented
+    message_count = names_months_df.merge(message_count, on=['name', 'month'], how='left').fillna(0)
+
+    aggregated_data['message count'] = message_count
+
+    # Calculate averages for the renamed columns and store in the aggregated_data dictionary
+    for original_col, renamed_col in mapping_dict.items():
+        group_data = df.pivot_table(index='name', columns='month', values=renamed_col, aggfunc='mean',
+                                    fill_value=0).reset_index()
+
+        # Merge with all name-month combinations to ensure all are represented
+        group_data = names_months_df.merge(group_data, on=['name', 'month'], how='left').fillna(0)
+
+        aggregated_data[renamed_col] = group_data
+
+    # Use the previous function to upload each aggregated DataFrame to the specified Google Sheet
+    spreadsheet_id = "1CA8UcL_ap5USX87-HPco6XgvQHDNjyz4h59ItuP7pTQ"
+    for tab_name, data in aggregated_data.items():
+        # Convert the entire DataFrame to string format to prevent JSON errors
+        data = data.astype("str")
+        save_dataframe_preserve_col_A(data, spreadsheet_id, tab_name)
+def process_and_upload(df, mapping_dict):
+    # Extracting month name
+    df['month'] = pd.to_datetime(df['date']).dt.strftime('%B')
+
+    # List of names to be considered
+    names_order = [
+        'Donald Tusk',
+        'Mateusz Morawiecki',
+        'Paweł Kukiz',
+        'Sławomir Mentzen',
+        'Władysław Kosiniak-Kamysz',
+        'Włodzimierz Czarzasty'
+    ]
+
+    # Rename the columns based on the mapping_dict
+    df = df.rename(columns=mapping_dict)
+
+    # Subset the DataFrame for rows with 'National Politicians' in the 'title' column and the given names
+    df = df[(df['title'] == 'National Politicians') & (df['name'].isin(names_order))]
+
+    # Create an empty dictionary to store the aggregated data for each group
+    aggregated_data = {}
+
+    # Count the number of posts for each group by month
+    message_count = df.pivot_table(index='name', columns='month', aggfunc='size', fill_value=0).reset_index()
+
+    # Ensure all names are present in the aggregated data
+    all_names_df = pd.DataFrame({'name': names_order})
+    message_count = all_names_df.merge(message_count, on='name', how='left').fillna(0)
+
+    aggregated_data['message count'] = message_count
+
+    # Calculate averages for the renamed columns and store in the aggregated_data dictionary
+    for original_col, renamed_col in mapping_dict.items():
+        group_data = df.pivot_table(index='name', columns='month', values=renamed_col, aggfunc='mean',
+                                    fill_value=0).reset_index()
+
+        # Ensure all names are present in the aggregated data
+        group_data = all_names_df.merge(group_data, on='name', how='left').fillna(0)
+
+        aggregated_data[renamed_col] = group_data
+
+    # Use the previous function to upload each aggregated DataFrame to the specified Google Sheet
+    spreadsheet_id = "1CA8UcL_ap5USX87-HPco6XgvQHDNjyz4h59ItuP7pTQ"
+    for tab_name, data in aggregated_data.items():
+        # Convert the entire DataFrame to string format to prevent JSON errors
+        data = data.astype("str")
+        save_dataframe_preserve_col_A(data, spreadsheet_id, tab_name)
+
+mapping_dict = {
+    'retweets':"retweet/share",
+    'actual.shareCount':"retweet/share",
+    'replies': "reply/comment",
+    'actual.commentCount': "reply/comment",
+    'likes':"likes",
+    'actual.likeCount':"likes"
+}
+
+# Assuming df has already been defined or loaded
+process_and_upload(df2, mapping_dict)
 
 

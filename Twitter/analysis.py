@@ -2,6 +2,7 @@ from drive_functions import *
 import numpy as np
 
 df = create_dataframe_from_folder("1XQzVMy7k_mTrVSXduyaoRNmgtdGj3Bmj")
+df2=df.copy()
 
 
 ################################counts##########################################################################
@@ -223,6 +224,72 @@ def breakdown_by_title(df):
 result_df = breakdown_by_title(df)
 emotions_folder = "1XUL-JqcBWqUHeaikcd1kuei0nt2PZzEd"
 save_dataframe_to_drive(result_df, "emotions.xlsx", emotions_folder)
+
+import pandas as pd
+
+
+def process_and_upload(df, mapping_dict):
+    # Extracting month name
+    df['month'] = pd.to_datetime(df['date']).dt.strftime('%B')
+
+    # List of names to be considered
+    names_order = [
+        'Donald Tusk',
+        'Mateusz Morawiecki (PM)',
+        'Paweł Kukiz',
+        'Sławomir Mentzen',
+        'Władysław Kosiniak-Kamysz',
+        'Włodzimierz Czarzasty'
+    ]
+
+    # Rename the columns based on the mapping_dict
+    df = df.rename(columns=mapping_dict)
+
+    # Subset the DataFrame for rows with 'National Politicians' in the 'title' column and the given names
+    df = df[(df['title'] == 'National Politicians') & (df['name'].isin(names_order))]
+
+    # Create an empty dictionary to store the aggregated data for each group
+    aggregated_data = {}
+
+    # Count the number of posts for each group by month
+    message_count = df.pivot_table(index='name', columns='month', aggfunc='size', fill_value=0).reset_index()
+
+    # Ensure all names are present in the aggregated data
+    all_names_df = pd.DataFrame({'name': names_order})
+    message_count = all_names_df.merge(message_count, on='name', how='left').fillna(0)
+
+    aggregated_data['message count'] = message_count
+
+    # Calculate averages for the renamed columns and store in the aggregated_data dictionary
+    for original_col, renamed_col in mapping_dict.items():
+        group_data = df.pivot_table(index='name', columns='month', values=renamed_col, aggfunc='mean',
+                                    fill_value=0).reset_index()
+
+        # Ensure all names are present in the aggregated data
+        group_data = all_names_df.merge(group_data, on='name', how='left').fillna(0)
+
+        aggregated_data[renamed_col] = group_data
+
+    # Use the previous function to upload each aggregated DataFrame to the specified Google Sheet
+    spreadsheet_id = "1Rmr2oP_c65_m2B23ntFed2JoRe8rFWOUYYexFP1cS_Q"
+    for tab_name, data in aggregated_data.items():
+        # Convert the entire DataFrame to string format to prevent JSON errors
+        data = data.astype("str")
+        save_dataframe_preserve_col_A(data, spreadsheet_id, tab_name)
+
+
+mapping_dict = {
+    'retweets':"retweet/share",
+    'actual.shareCount':"retweet/share",
+    'replies': "reply/comment",
+    'actual.commentCount': "reply/comment",
+    'likes':"likes",
+    'actual.likeCount':"likes"
+}
+
+# Assuming df has already been defined or loaded
+process_and_upload(df2, mapping_dict)
+
 
 
 ###save

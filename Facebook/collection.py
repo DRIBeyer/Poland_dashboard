@@ -21,7 +21,7 @@ else:
 today = datetime.datetime.now()
 
 # Subtract one week from today's date
-one_week_ago = today - datetime.timedelta(weeks=1)
+one_week_ago = today - datetime.timedelta(weeks=4)
 
 # Convert today's date and one week ago to string format
 today_str = today.strftime('%Y-%m-%d')

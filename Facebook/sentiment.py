@@ -6,6 +6,7 @@ import nltk
 nltk.download('punkt')
 # Import sentence tokenization function
 from nltk.tokenize import sent_tokenize
+import swifter
 # Importing functions from a local file 'drive_functions'
 from drive_functions import *
 from datetime import date, timedelta
@@ -23,6 +24,8 @@ google_drive_folder = "1x53Whuu7dZxB28wx_TZ67NiV2BlbbA27"
 # Read the excel file into a pandas DataFrame
 df = pd.read_excel(input_path)
 
+df = df[df["title"]!= "Media Institutions"]
+
 # Load the Polish spacy model for language processing tasks
 nlp = spacy.load('pl_core_news_sm')
 
@@ -33,7 +36,7 @@ sentiment_model = pipeline("text-classification", model=model_path, tokenizer=mo
 # Define a function to preprocess the text
 def preprocess_text(text):
     # Tokenize the text into sentences
-    sentences = sent_tokenize(text)
+    sentences = sent_tokenize(str(text))
 
     # Lowercase, lemmatize and remove stop words from each sentence
     preprocessed_sentences = []

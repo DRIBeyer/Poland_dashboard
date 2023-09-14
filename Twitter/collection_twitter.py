@@ -38,8 +38,8 @@ input_path = f".//Data//data_{today}.xlsx"
 output_path = f".//Data//data_{today}.xlsx"
 
 
-BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAABS4pQEAAAAAj%2BjWBTRYvruy0frkEH7mZLfok6M%3DpT5YRi5bUDYOxO0amNLbW4ZzqRH6og1RRYxDS9K5Bcaa1wXF4Z'
-
+#BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAABS4pQEAAAAAj%2BjWBTRYvruy0frkEH7mZLfok6M%3DpT5YRi5bUDYOxO0amNLbW4ZzqRH6og1RRYxDS9K5Bcaa1wXF4Z'
+BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAEO4pQEAAAAABej7EviSkkXXqZ0qzOChUBMxnIg%3DIXQtFTooq3u9GXfj6kMwDDtPgETczXWif4BMymMfYW3LpJ0EzY"
 headers = {
     'Authorization': f'Bearer {BEARER_TOKEN}',
     'User-Agent': 'v2TwitterAPIPython'
@@ -55,7 +55,7 @@ def get_user_id(screen_name):
 
 def get_tweets_by_screen_names(screen_names):
     # Setting the start_date to one week before the current date
-    start_date = datetime.utcnow() - timedelta(days=1)
+    start_date = datetime.utcnow() - timedelta(weeks=2)
 
     all_tweets = []
 
