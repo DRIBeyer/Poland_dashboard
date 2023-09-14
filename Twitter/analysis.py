@@ -168,64 +168,64 @@ save_dataframe_to_drive(result, "sentiment_distribution.xlsx", "1Xmr1n5opkBp0S8o
 
 
 #########################################toxicity##############################################################
-def count_high_toxicity_entries(df):
-    # Filter the dataframe for entries with 'toxicity' greater than 0.7
-    filtered_df = df[df['toxicity'] > 0.7]
-
-    # Group by 'title' column and count the instances
-    toxic_counts = filtered_df.groupby('title')['toxicity'].count()
-
-    return toxic_counts.reset_index().rename(columns={"toxicity": "high_toxicity_count"})
-
-toxic_counts = count_high_toxicity_entries(df)
-
-toxic_counts = toxic_counts.astype({"title": "str", "high_toxicity_count": "int"})
-theme_folder = "1X_0AJ2imRje94euXNApXd81T0pcOho61"
-save_dataframe_to_drive(toxic_counts, "toxic.xlsx", theme_folder)
-
-import pandas as pd
-
-
-def breakdown_by_title(df):
-    # Filter out rows where emotion is 'neutral'
-    filtered_df = df[df['emotion'] != 'neutral']
-
-    # Initialize a dictionary to keep counts
-    counts = {}
-
-    # Iterate over filtered DataFrame to populate counts
-    for idx, row in filtered_df.iterrows():
-        title = row['title']
-        emotion = row['emotion']
-
-        if title not in counts:
-            counts[title] = {}
-
-        if emotion not in counts[title]:
-            counts[title][emotion] = 0
-
-        counts[title][emotion] += 1
-
-    # Convert counts to DataFrame
-    pivot_df = pd.DataFrame.from_dict(counts, orient='index').fillna(0)
-
-    # Transpose DataFrame for desired orientation
-    pivot_df = pivot_df.transpose()
-
-    # Convert counts to percentage
-    for col in pivot_df.columns:
-        pivot_df[col] = (pivot_df[col] / pivot_df[col].sum()) * 100
-
-    return pivot_df.reset_index()
-
-
-
-              # Use the function
-result_df = breakdown_by_title(df)
-emotions_folder = "1XUL-JqcBWqUHeaikcd1kuei0nt2PZzEd"
-save_dataframe_to_drive(result_df, "emotions.xlsx", emotions_folder)
-
-import pandas as pd
+# def count_high_toxicity_entries(df):
+#     # Filter the dataframe for entries with 'toxicity' greater than 0.7
+#     filtered_df = df[df['toxicity'] > 0.7]
+#
+#     # Group by 'title' column and count the instances
+#     toxic_counts = filtered_df.groupby('title')['toxicity'].count()
+#
+#     return toxic_counts.reset_index().rename(columns={"toxicity": "high_toxicity_count"})
+#
+# toxic_counts = count_high_toxicity_entries(df)
+#
+# toxic_counts = toxic_counts.astype({"title": "str", "high_toxicity_count": "int"})
+# theme_folder = "1X_0AJ2imRje94euXNApXd81T0pcOho61"
+# save_dataframe_to_drive(toxic_counts, "toxic.xlsx", theme_folder)
+#
+# import pandas as pd
+#
+#
+# def breakdown_by_title(df):
+#     # Filter out rows where emotion is 'neutral'
+#     filtered_df = df[df['emotion'] != 'neutral']
+#
+#     # Initialize a dictionary to keep counts
+#     counts = {}
+#
+#     # Iterate over filtered DataFrame to populate counts
+#     for idx, row in filtered_df.iterrows():
+#         title = row['title']
+#         emotion = row['emotion']
+#
+#         if title not in counts:
+#             counts[title] = {}
+#
+#         if emotion not in counts[title]:
+#             counts[title][emotion] = 0
+#
+#         counts[title][emotion] += 1
+#
+#     # Convert counts to DataFrame
+#     pivot_df = pd.DataFrame.from_dict(counts, orient='index').fillna(0)
+#
+#     # Transpose DataFrame for desired orientation
+#     pivot_df = pivot_df.transpose()
+#
+#     # Convert counts to percentage
+#     for col in pivot_df.columns:
+#         pivot_df[col] = (pivot_df[col] / pivot_df[col].sum()) * 100
+#
+#     return pivot_df.reset_index()
+#
+#
+#
+#               # Use the function
+# result_df = breakdown_by_title(df)
+# emotions_folder = "1XUL-JqcBWqUHeaikcd1kuei0nt2PZzEd"
+# save_dataframe_to_drive(result_df, "emotions.xlsx", emotions_folder)
+#
+# import pandas as pd
 
 
 def process_and_upload(df, mapping_dict):
