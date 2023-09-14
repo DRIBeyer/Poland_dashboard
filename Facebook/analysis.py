@@ -6,6 +6,19 @@ df2 = df.copy()
 
 ################################counts##########################################################################
 
+def count_rows(df):
+    count = len(df)
+    return pd.DataFrame({'count': [count]})
+
+stats_folder="1UldSEv6fsvjTqF2h0FskRZStc7-cSrLs"
+
+total = count_rows(df)
+total=total.astype("str")
+save_dataframe_to_drive(total, "total_facebook.xlsx" ,stats_folder)
+
+
+
+
 def count_tweets_by_day(df, timestamp_col='date'):
     # Convert the timestamp column to datetime format if it's not already
     df[timestamp_col] = pd.to_datetime(df[timestamp_col])
@@ -166,6 +179,44 @@ result = sentiment_distribution(df)
 save_dataframe_to_drive(result, "sentiment_distribution.xlsx", "1UbBeVSE9pymhho8yVFEHd8TZH-c_z6oi")
 
 
+
+def sentiment_distribution_politician(df):
+    # Filter the dataframe to only include rows with politician names
+    names_order = [
+        'Donald Tusk',
+        'Mateusz Morawiecki',
+        'Paweł Kukiz',
+        'Sławomir Mentzen',
+        'Władysław Kosiniak-Kamysz',
+        'Włodzimierz Czarzasty'
+    ]
+    df = df[df['name'].isin(names_order)]
+
+    # Convert continuous sentiment scores to categorical values
+    df['sentiment'] = np.where(df['sent_code'] <= -0.02, 'Negative',
+                               np.where(df['sent_code'] >= 0.02, 'Positive', 'Neutral'))
+
+    # Group by 'names' and get the count of each sentiment category
+    sentiment_counts = df.groupby('name')['sentiment'].value_counts(normalize=True).unstack().fillna(0) * 100
+
+    # Reorder columns
+    order = ['Negative', 'Neutral', 'Positive']
+    sentiment_counts = sentiment_counts[order]
+
+    return sentiment_counts.reset_index()
+
+
+# Get sentiment distribution
+result = sentiment_distribution_politician(df)
+
+# Save result to Google Drive using your existing function
+save_dataframe_to_drive(result, "sentiment_distribution_politicians.xlsx", "1UbBeVSE9pymhho8yVFEHd8TZH-c_z6oi")
+
+
+
+
+
+
 #########################################toxicity##############################################################
 # def count_high_toxicity_entries(df):
 #     # Filter the dataframe for entries with 'toxicity' greater than 0.7
@@ -231,61 +282,6 @@ save_dataframe_to_drive(result, "sentiment_distribution.xlsx", "1UbBeVSE9pymhho8
 
 def process_and_upload(df, mapping_dict):
     # Extracting month name
-    df['month'] = pd.to_datetime(df['date']).dt.strftime('%B')  # Extracting month name
-
-    # List of names to be considered
-    names_order = [
-        'Donald Tusk',
-        'Mateusz Morawiecki',
-        'Paweł Kukiz',
-        'Sławomir Mentzen',
-        'Władysław Kosiniak-Kamysz',
-        'Włodzimierz Czarzasty'
-    ]
-
-    # Rename the columns based on the mapping_dict
-    df = df.rename(columns=mapping_dict)
-
-    # Subset the DataFrame for rows with 'National Politicians' in the 'title' column and the given names
-    df = df[(df['title'] == 'National Politicians') & (df['name'].isin(names_order))]
-
-    # Create an empty dictionary to store the aggregated data for each group
-    aggregated_data = {}
-
-    # Extract unique months from the dataset
-    all_months = df['month'].unique()
-
-    # Create a dataframe with all combinations of names and months
-    names_df = pd.DataFrame({'name': names_order})
-    months_df = pd.DataFrame({'month': all_months})
-    names_months_df = names_df.assign(dummy=1).merge(months_df.assign(dummy=1)).drop('dummy', axis=1)
-
-    # Count the number of posts for each group by month
-    message_count = df.pivot_table(index='name', columns='month', aggfunc='size', fill_value=0).reset_index()
-
-    # Merge with all name-month combinations to ensure all are represented
-    message_count = names_months_df.merge(message_count, on=['name', 'month'], how='left').fillna(0)
-
-    aggregated_data['message count'] = message_count
-
-    # Calculate averages for the renamed columns and store in the aggregated_data dictionary
-    for original_col, renamed_col in mapping_dict.items():
-        group_data = df.pivot_table(index='name', columns='month', values=renamed_col, aggfunc='mean',
-                                    fill_value=0).reset_index()
-
-        # Merge with all name-month combinations to ensure all are represented
-        group_data = names_months_df.merge(group_data, on=['name', 'month'], how='left').fillna(0)
-
-        aggregated_data[renamed_col] = group_data
-
-    # Use the previous function to upload each aggregated DataFrame to the specified Google Sheet
-    spreadsheet_id = "1CA8UcL_ap5USX87-HPco6XgvQHDNjyz4h59ItuP7pTQ"
-    for tab_name, data in aggregated_data.items():
-        # Convert the entire DataFrame to string format to prevent JSON errors
-        data = data.astype("str")
-        save_dataframe_preserve_col_A(data, spreadsheet_id, tab_name)
-def process_and_upload(df, mapping_dict):
-    # Extracting month name
     df['month'] = pd.to_datetime(df['date']).dt.strftime('%B')
 
     # List of names to be considered
@@ -319,6 +315,54 @@ def process_and_upload(df, mapping_dict):
     # Calculate averages for the renamed columns and store in the aggregated_data dictionary
     for original_col, renamed_col in mapping_dict.items():
         group_data = df.pivot_table(index='name', columns='month', values=renamed_col, aggfunc='mean',
+                                    fill_value=0).reset_index()
+
+        # Ensure all names are present in the aggregated data
+        group_data = all_names_df.merge(group_data, on='name', how='left').fillna(0)
+
+        aggregated_data[renamed_col] = group_data
+
+    # Use the previous function to upload each aggregated DataFrame to the specified Google Sheet
+    spreadsheet_id = "1CA8UcL_ap5USX87-HPco6XgvQHDNjyz4h59ItuP7pTQ"
+    for tab_name, data in aggregated_data.items():
+        # Convert the entire DataFrame to string format to prevent JSON errors
+        data = data.astype("str")
+        save_dataframe_preserve_col_A(data, spreadsheet_id, tab_name)
+def process_and_upload(df, mapping_dict):
+    # Extracting year and week number
+    df['year_week'] = pd.to_datetime(df['date']).dt.strftime('%Y-W%U')
+
+    # List of names to be considered
+    names_order = [
+        'Donald Tusk',
+        'Mateusz Morawiecki',
+        'Paweł Kukiz',
+        'Sławomir Mentzen',
+        'Władysław Kosiniak-Kamysz',
+        'Włodzimierz Czarzasty'
+    ]
+
+    # Rename the columns based on the mapping_dict
+    df = df.rename(columns=mapping_dict)
+
+    # Subset the DataFrame for rows with 'National Politicians' in the 'title' column and the given names
+    df = df[(df['title'] == 'National Politicians') & (df['name'].isin(names_order))]
+
+    # Create an empty dictionary to store the aggregated data for each group
+    aggregated_data = {}
+
+    # Count the number of posts for each group by week
+    message_count = df.pivot_table(index='name', columns='year_week', aggfunc='size', fill_value=0).reset_index()
+
+    # Ensure all names are present in the aggregated data
+    all_names_df = pd.DataFrame({'name': names_order})
+    message_count = all_names_df.merge(message_count, on='name', how='left').fillna(0)
+
+    aggregated_data['message count'] = message_count
+
+    # Calculate averages for the renamed columns and store in the aggregated_data dictionary
+    for original_col, renamed_col in mapping_dict.items():
+        group_data = df.pivot_table(index='name', columns='year_week', values=renamed_col, aggfunc='mean',
                                     fill_value=0).reset_index()
 
         # Ensure all names are present in the aggregated data
