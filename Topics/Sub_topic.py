@@ -58,6 +58,10 @@ def concatenate_dfs(df1, df2):
     return pd.concat([df1, df2], ignore_index=True)
 
 df = concatenate_dfs(df1, df2)
+
+df=df[df["title"] !="Clergy"]
+df=df[df["title"] !="NGO-CS"]
+
 df.to_excel("test.xlsx")
 
 

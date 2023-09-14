@@ -2,6 +2,8 @@ from drive_functions import *
 import numpy as np
 
 df = create_dataframe_from_folder("1x53Whuu7dZxB28wx_TZ67NiV2BlbbA27")
+df=df[df["title"]!="Clergy"]
+df=df[df["title"]!="NGO-CS"]
 df2 = df.copy()
 
 ################################counts##########################################################################

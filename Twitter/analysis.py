@@ -14,7 +14,7 @@ stats_folder="1XmS1IlBZ4FXHK81cks2L2J8uS884Twwv"
 
 total = count_rows(df)
 total=total.astype("str")
-save_dataframe_to_drive(total, "total_facebook.xlsx" ,stats_folder)
+save_dataframe_to_drive(total, "total_twitter.xlsx" ,stats_folder)
 
 
 
