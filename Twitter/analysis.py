@@ -6,6 +6,17 @@ df2=df.copy()
 
 
 ################################counts##########################################################################
+def count_rows(df):
+    count = len(df)
+    return pd.DataFrame({'count': [count]})
+
+stats_folder="1XmS1IlBZ4FXHK81cks2L2J8uS884Twwv"
+
+total = count_rows(df)
+total=total.astype("str")
+save_dataframe_to_drive(total, "total_facebook.xlsx" ,stats_folder)
+
+
 
 def count_tweets_by_day(df, timestamp_col='date'):
     # Convert the timestamp column to datetime format if it's not already
@@ -167,6 +178,39 @@ result = sentiment_distribution(df)
 save_dataframe_to_drive(result, "sentiment_distribution.xlsx", "1Xmr1n5opkBp0S8oGmpykFFbCgdLhu9D8")
 
 
+def sentiment_distribution_politician(df):
+    # Filter the dataframe to only include rows with politician names
+    names_order = [
+        'Donald Tusk',
+        'Mateusz Morawiecki (PM)',
+        'Paweł Kukiz',
+        'Sławomir Mentzen',
+        'Władysław Kosiniak-Kamysz',
+        'Włodzimierz Czarzasty'
+    ]
+    df = df[df['name'].isin(names_order)]
+
+    # Convert continuous sentiment scores to categorical values
+    df['sentiment'] = np.where(df['sent_code'] <= -0.02, 'Negative',
+                               np.where(df['sent_code'] >= 0.02, 'Positive', 'Neutral'))
+
+    # Group by 'names' and get the count of each sentiment category
+    sentiment_counts = df.groupby('name')['sentiment'].value_counts(normalize=True).unstack().fillna(0) * 100
+
+    # Reorder columns
+    order = ['Negative', 'Neutral', 'Positive']
+    sentiment_counts = sentiment_counts[order]
+
+    return sentiment_counts.reset_index()
+
+
+# Get sentiment distribution
+result = sentiment_distribution_politician(df)
+
+# Save result to Google Drive using your existing function
+save_dataframe_to_drive(result, "sentiment_distribution_politicians.xlsx", "1Xmr1n5opkBp0S8oGmpykFFbCgdLhu9D8")
+
+
 #########################################toxicity##############################################################
 # def count_high_toxicity_entries(df):
 #     # Filter the dataframe for entries with 'toxicity' greater than 0.7
@@ -276,6 +320,56 @@ def process_and_upload(df, mapping_dict):
         # Convert the entire DataFrame to string format to prevent JSON errors
         data = data.astype("str")
         save_dataframe_preserve_col_A(data, spreadsheet_id, tab_name)
+
+def process_and_upload(df, mapping_dict):
+    # Extracting year and week number
+    df['year_week'] = pd.to_datetime(df['date']).dt.strftime('%Y-W%U')
+
+    # List of names to be considered
+    names_order = [
+        'Donald Tusk',
+        'Mateusz Morawiecki (PM)',
+        'Paweł Kukiz',
+        'Sławomir Mentzen',
+        'Władysław Kosiniak-Kamysz',
+        'Włodzimierz Czarzasty'
+    ]
+
+    # Rename the columns based on the mapping_dict
+    df = df.rename(columns=mapping_dict)
+
+    # Subset the DataFrame for rows with 'National Politicians' in the 'title' column and the given names
+    df = df[(df['title'] == 'National Politicians') & (df['name'].isin(names_order))]
+
+    # Create an empty dictionary to store the aggregated data for each group
+    aggregated_data = {}
+
+    # Count the number of posts for each group by week
+    message_count = df.pivot_table(index='name', columns='year_week', aggfunc='size', fill_value=0).reset_index()
+
+    # Ensure all names are present in the aggregated data
+    all_names_df = pd.DataFrame({'name': names_order})
+    message_count = all_names_df.merge(message_count, on='name', how='left').fillna(0)
+
+    aggregated_data['message count'] = message_count
+
+    # Calculate averages for the renamed columns and store in the aggregated_data dictionary
+    for original_col, renamed_col in mapping_dict.items():
+        group_data = df.pivot_table(index='name', columns='year_week', values=renamed_col, aggfunc='mean',
+                                    fill_value=0).reset_index()
+
+        # Ensure all names are present in the aggregated data
+        group_data = all_names_df.merge(group_data, on='name', how='left').fillna(0)
+
+        aggregated_data[renamed_col] = group_data
+
+    # Use the previous function to upload each aggregated DataFrame to the specified Google Sheet
+    spreadsheet_id = "1Rmr2oP_c65_m2B23ntFed2JoRe8rFWOUYYexFP1cS_Q"
+    for tab_name, data in aggregated_data.items():
+        # Convert the entire DataFrame to string format to prevent JSON errors
+        data = data.astype("str")
+        save_dataframe_preserve_col_A(data, spreadsheet_id, tab_name)
+
 
 
 mapping_dict = {
