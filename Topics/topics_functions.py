@@ -6,7 +6,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from bertopic import BERTopic
-
+from wordcloud import WordCloud, STOPWORDS
 
 
 # Ensure you have these downloaded. Uncomment if necessary.
@@ -230,3 +230,81 @@ def extract_topics(df):
     topic_terms = topic_terms[['Topic Label', 'Terms']].reset_index(drop=True)
 
     return topic_terms.sort_values("Topic Label")
+
+
+def clean_text(text):
+    """
+    Cleans the input text. Steps:
+    - Convert to lowercase
+    - Remove URLs
+    - Remove punctuation
+    - Remove numbers
+    - Tokenize
+    - Remove stopwords
+    - Lemmatize
+    """
+
+    # Convert to lowercase
+    text = text.lower()
+
+    # Remove URLs
+    text = re.sub(r"http\S+|www\S+|https\S+", '', text, flags=re.MULTILINE)
+
+    # Remove punctuation
+    text = text.translate(str.maketrans('', '', string.punctuation))
+
+    # Remove numbers
+    text = re.sub(r'\d+', '', text)
+
+    # Tokenize
+    tokens = text.split()
+
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word not in stop_words]
+
+    # Lemmatize
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(word, pos='v') for word in tokens]
+
+    # Return the cleaned text
+    return ' '.join(tokens)
+
+def process_dataframe(df):
+    df["text_clean"] = df["translated_message"].apply(clean_text)
+    return df
+
+
+def create_wordcloud(df, column_name='text_clean'):
+    """
+    Generates a word cloud based on the specified text column of the dataframe and
+    returns a DataFrame with words and their weights.
+
+    Parameters:
+    - df: DataFrame containing the text data.
+    - column_name: Name of the column with text data. Default is 'text_clean'.
+
+    Returns:
+    - word_weights_df: DataFrame with words and their corresponding weights.
+    """
+    df = process_dataframe(df)
+    # Combine all texts in the column into a single string
+    combined_text = ' '.join(df[column_name].dropna())
+
+    # Define additional stopwords if necessary
+    stopwords = set(STOPWORDS)
+    # e.g., stopwords.update(["word1", "word2"])
+
+    # Set up the word cloud parameters
+    wordcloud = WordCloud(stopwords=stopwords,
+                          background_color='white',
+                          width=800,
+                          height=400,
+                          max_words=200,
+                          colormap='viridis',
+                          contour_width=2,
+                          contour_color='blue').generate(combined_text)
+
+    # Convert word frequencies to DataFrame
+    word_weights_df = pd.DataFrame(list(wordcloud.words_.items()), columns=['Word', 'Weight'])
+    return word_weights_df

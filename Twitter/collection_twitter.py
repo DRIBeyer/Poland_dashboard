@@ -55,7 +55,7 @@ def get_user_id(screen_name):
 
 def get_tweets_by_screen_names(screen_names):
     # Setting the start_date to one week before the current date
-    start_date = datetime.utcnow() - timedelta(weeks=2)
+    start_date = datetime.utcnow() - timedelta(days=12)
 
     all_tweets = []
 
@@ -66,7 +66,7 @@ def get_tweets_by_screen_names(screen_names):
         user_id = get_user_id(screen_name)
         next_token = None
         while True:
-            url = f"https://api.twitter.com/2/users/{user_id}/tweets?expansions=author_id&tweet.fields=text,public_metrics,created_at&max_results=100"
+            url = f"https://api.twitter.com/2/users/{user_id}/tweets?expansions=author_id&tweet.fields=text,public_metrics,created_at&max_results=30"
             if next_token:
                 url += f"&pagination_token={next_token}"
 

@@ -100,6 +100,14 @@ for T in Topics:
 
   save_dataframe_to_drive(sentiment_percentage, f"{topic}_{method}.xlsx", folder_name)
 
+  method = "wordcloud"
+
+  wordcloud = create_wordcloud(subset)
+  wordcloud = wordcloud.astype("str")
+  save_dataframe_to_drive(wordcloud, f"{topic}_{method}.xlsx", folder_name)
+
+
+
   try:
       method = "topic"
       topic_found = extract_topics(subset)
@@ -108,3 +116,5 @@ for T in Topics:
 
   except:
       continue
+
+

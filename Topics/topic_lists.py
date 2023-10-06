@@ -53,7 +53,30 @@ ROL = [
     "przestrzeganie prawa", "adherence to the law",
     "przestrzeganie konstytucji", "adherence to the constitution"
 ]
-
+ROL = [
+    "praworządność", "rule of law",
+    "zasada praworządności", "principle of the rule of law",
+    "trybunał konstytucyjny", "Constitutional Tribunal",
+    "prawa człowieka", "human rights",
+    "konstytucja", "constitution",
+    "niezawisłość sądów", "judicial independence",
+    "władza sądownicza", "judicial power",
+    "rządy prawa", "rule of law",
+    "standardy prawne", "legal standards",
+    "nadużycie władzy", "abuse of power",
+    "prawo i porządek", "law and order",
+    "wolność słowa", "freedom of speech",
+    "równość wobec prawa", "equality before the law",
+    "prawo do sądu", "right to a fair trial",
+    "prawo do obrony", "right to defense",
+    "prawa obywatelskie", "civil rights",
+    "wolność zgromadzeń", "freedom of assembly",
+    "wolność zrzeszania się", "freedom of association",
+    "rozdział władzy", "separation of powers",
+    "prawo międzynarodowe", "international law",
+    "przestrzeganie prawa", "adherence to the law",
+    "przestrzeganie konstytucji", "adherence to the constitution"
+]
 
 
 Topics["ROL"]=ROL
@@ -83,14 +106,12 @@ LGBTQ = [
     "heteroseksualny", "Heterosexual",
     "kampanie na rzecz praw lgbt", "LGBT rights campaigns",
     "zmiana płci", "Gender transition",
-    "wspierający", "Ally",
     "wychodzenie z szafy", "Coming out",
     "prawo do małżeństwa", "Right to marry",
     "związki partnerskie", "Civil partnerships",
     "homofobia", "Homophobia",
     "transfobia", "Transphobia",
     "biseksualność", "Bisexuality",
-    "duma", "Pride",
     "flaga tęczowa", "Rainbow flag"
 ]
 
@@ -105,38 +126,29 @@ Ukraine = [
     "przyłączenie Krymu", "Annexation of Crimea",
     "konflikt wschodnioukraiński", "Eastern Ukrainian conflict",
     "przemyśl", "Przemyśl",
-    "Lwów", "Lviv",
     "Rosja", "Russia",
     "Poroszenko", "Petro Poroshenko",
-    "Zelenski", "Volodymyr Zelensky",
+    "Zelenski", "Zelensky",
     "Minsk", "Minsk agreements/protocols",
     "bojownicy", "Fighters or militants",
     "MH17", "Flight MH17",
     "broń", "Weapons",
-    "atak", "Attack",
-    "agresja", "Aggression",
     "wojska", "Troops",
     "granica", "Border",
     "pomoc humanitarna", "Humanitarian aid",
-    "negocjacje", "Negotiations",
-    "unia europejska", "European Union",
     "NATO", "NATO",
     "wojskowi", "Military personnel",
     "okupacja", "Occupation",
     "wojsko rosyjskie", "Russian military",
-    "sankcje", "Sanctions",
     "działania wojenne", "Military operations",
     "przejście graniczne", "Border crossing",
     "tarcza antyrakietowa", "Missile defense shield",
-    "sojusz", "Alliance",
-    "pokoje", "Peace",
     "rozejm", "Ceasefire",
     "dyplomacja", "Diplomacy",
     "mediator", "Mediator",
     "konwój", "Convoy",
     "ofiary cywilne", "Civilian casualties",
     "uchodźcy", "Refugees",
-    "obóz", "Camp",
-    "czerwony krzyż", "Red Cross"
+
 ]
 Topics["Ukraine"]=Ukraine
