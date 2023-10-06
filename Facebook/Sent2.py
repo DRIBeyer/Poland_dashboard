@@ -24,7 +24,7 @@ google_drive_folder = "1x53Whuu7dZxB28wx_TZ67NiV2BlbbA27"
 
 # Read the excel file into a pandas DataFrame
 df = pd.read_excel(input_path)
-df = df[df["title"] != "Media Institutions"]
+
 # Load the Polish spacy model for language processing tasks
 nlp = spacy.load('pl_core_news_sm')
 

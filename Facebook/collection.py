@@ -21,7 +21,7 @@ else:
 today = datetime.datetime.now()
 
 # Subtract one week from today's date
-one_week_ago = today - datetime.timedelta(weeks=4)
+one_week_ago = today - datetime.timedelta(days=11)
 
 # Convert today's date and one week ago to string format
 today_str = today.strftime('%Y-%m-%d')
@@ -119,10 +119,17 @@ def collect(excel_file):
     # Get the names of all sheets in the Excel file
     sheet_names = xls.sheet_names
 
+    # Sheets to be skipped
+    skip_sheets = ['Media Institutions', 'NGO-CS', 'Clergy']
+
     # List to store dataframes
     dfs = []
 
     for sheet in sheet_names:
+        # Skip the sheet if its name is in skip_sheets list
+        if sheet in skip_sheets:
+            continue
+
         df = pd.read_excel(xls, sheet_name=sheet)
 
         # Check if 'Facebook user' column exists
@@ -142,6 +149,7 @@ def collect(excel_file):
             data = normalize_data(data)
             data['title'] = sheet
             data.to_excel(f".//temp//data_{sheet}.xlsx")
+
 
 # Define the function for concatenating Excel files
 def concatenate_excel_files(directory):
