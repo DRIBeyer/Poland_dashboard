@@ -38,8 +38,8 @@ input_path = f".//Data//data_{today}.xlsx"
 output_path = f".//Data//data_{today}.xlsx"
 
 
-#BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAABS4pQEAAAAAj%2BjWBTRYvruy0frkEH7mZLfok6M%3DpT5YRi5bUDYOxO0amNLbW4ZzqRH6og1RRYxDS9K5Bcaa1wXF4Z'
-BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAEO4pQEAAAAABej7EviSkkXXqZ0qzOChUBMxnIg%3DIXQtFTooq3u9GXfj6kMwDDtPgETczXWif4BMymMfYW3LpJ0EzY"
+BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAABS4pQEAAAAAj%2BjWBTRYvruy0frkEH7mZLfok6M%3DpT5YRi5bUDYOxO0amNLbW4ZzqRH6og1RRYxDS9K5Bcaa1wXF4Z'
+#BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAEO4pQEAAAAABej7EviSkkXXqZ0qzOChUBMxnIg%3DIXQtFTooq3u9GXfj6kMwDDtPgETczXWif4BMymMfYW3LpJ0EzY"
 headers = {
     'Authorization': f'Bearer {BEARER_TOKEN}',
     'User-Agent': 'v2TwitterAPIPython'
@@ -55,7 +55,7 @@ def get_user_id(screen_name):
 
 def get_tweets_by_screen_names(screen_names):
     # Setting the start_date to one week before the current date
-    start_date = datetime.utcnow() - timedelta(days=12)
+    start_date = datetime.utcnow() - timedelta(days=9)
 
     all_tweets = []
 
@@ -116,29 +116,27 @@ def collect(excel_file):
     # Load Excel file
     xls = pd.ExcelFile(excel_file)
 
-    # Get the names of all sheets in the Excel file
-    sheet_names = xls.sheet_names
+    # Sheets to be processed
+    target_sheets = ['National Politicians', 'Regional Politicians']
 
     # List to store dataframes
     dfs = []
 
-    for sheet in sheet_names:
-        if sheet != "Media Institutions":
-            df = pd.read_excel(xls, sheet_name=sheet)
+    for sheet in target_sheets:
+        df = pd.read_excel(xls, sheet_name=sheet)
 
-            # Check if 'Facebook user' column exists
-            if 'Twitter user' in df.columns:
+        # Check if 'Twitter user' column exists
+        if 'Twitter user' in df.columns:
+            pages = df['Twitter user'].to_list()
+            filtered_list = [x for x in pages if x not in ["", '', "nan", None]]
+            filtered_list = [str(x) for x in filtered_list]
 
-                pages = df['Twitter user'].to_list()
-                filtered_list = [x for x in pages if x not in ["", '', "nan", None]]
-                filtered_list = [str(x) for x in filtered_list]
+            # Get posts (tweets) from these pages
+            data = get_tweets_by_screen_names(filtered_list)
 
-                # Get posts from these pages
-                data = get_tweets_by_screen_names(filtered_list)
+            data['title'] = sheet
+            data.to_excel(f".//temp//data_{sheet}.xlsx")
 
-
-                data['title'] = sheet
-                data.to_excel(f".//temp//data_{sheet}.xlsx")
 
 def concatenate_excel_files(directory):
     # Initialize an empty dataframe
