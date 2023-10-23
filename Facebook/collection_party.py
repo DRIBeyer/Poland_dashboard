@@ -21,13 +21,15 @@ else:
 today = datetime.datetime.now()
 
 # Subtract one week from today's date
-one_week_ago = today - datetime.timedelta(days=8)
-two_week_ago = today - datetime.timedelta(days=15)
+one_week_ago = today - datetime.timedelta(days=7)
+two_week_ago = today - datetime.timedelta(days=16)
 
 # Convert today's date and one week ago to string format
 today_str = today.strftime('%Y-%m-%d')
 one_week_ago_str = one_week_ago.strftime('%Y-%m-%d')
 two_week_ago_str = two_week_ago.strftime('%Y-%m-%d')
+
+print(one_week_ago_str, two_week_ago_str)
 
 # Define the path for saving the output file
 output_path=f".//Data//data_{today_str}.xlsx"
