@@ -13,7 +13,7 @@ output_path=f".//Data//data_{current_date}.xlsx"
 google_drive_folder = "1XQzVMy7k_mTrVSXduyaoRNmgtdGj3Bmj"
 # Load the data from the Excel file into a pandas DataFrame
 df = pd.read_excel(input_path)
-#df = pd.read_excel(".//Data//data_2023-09-26.xlsx")
+#df = pd.read_excel(".//Data//data_2023-10-06.xlsx")
 # Specify the name of the pre-trained model to use for translation
 model_name = 'Helsinki-NLP/opus-mt-pl-en'
 

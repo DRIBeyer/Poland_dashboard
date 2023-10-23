@@ -9,6 +9,7 @@ current_date = date.today()
 
 # Define the path to the data file using the current date
 input_path=f".//Data//data_{current_date}.xlsx"
+#input_path=f".//Data//data_2023-10-12.xlsx"
 output_path=f".//Data//data_{current_date}.xlsx"
 google_drive_folder = "1x53Whuu7dZxB28wx_TZ67NiV2BlbbA27"
 # Load the data from the Excel file into a pandas DataFrame

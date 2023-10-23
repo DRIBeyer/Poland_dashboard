@@ -1,6 +1,9 @@
 from drive_functions import *
 from topic_lists import *
 from topics_functions import *
+from datetime import date, timedelta
+current_date = date.today()
+
 
 df1 = create_dataframe_from_folder("1XQzVMy7k_mTrVSXduyaoRNmgtdGj3Bmj")
 df2 = create_dataframe_from_folder("1x53Whuu7dZxB28wx_TZ67NiV2BlbbA27")
@@ -62,7 +65,7 @@ df = concatenate_dfs(df1, df2)
 df=df[df["title"] !="Clergy"]
 df=df[df["title"] !="NGO-CS"]
 
-df.to_excel("test.xlsx")
+df.to_excel(f"{current_date}_concatinated.xlsx")
 
 
 
